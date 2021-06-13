@@ -1,0 +1,257 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block import-css %}
+<style>
+
+#kosakata_table tr th:last-child, #kosakata_table tr td:last-child{
+	white-space: nowrap;
+	width: 1%;
+}
+
+</style>
+{% endblock import-css %}
+{% block content %}
+<div class="nk-block-head nk-block-head-sm">
+	<div class="nk-block-between">
+		<div class="nk-block-head-content">
+			<h3 class="nk-block-title page-title">Data kamus</h3>
+			<div class="nk-block-des text-soft">
+				<p></p>
+			</div>
+		</div>
+		<div class="nk-block-head-content">
+			<div class="toggle-wrap nk-block-tools-toggle">
+				<a href="#" class="btn btn-icon btn-trigger toggle-expand mr-n1" data-target="pageMenu"><em class="icon ni ni-more-v"></em></a>
+				<div class="toggle-expand-content" data-content="pageMenu">
+					<ul class="nk-block-tools g-3">
+						<li class="nk-block-tools-opt"><a href="#" id="show_modal_insert" class="btn btn-primary"><em class="icon ni ni-reports"></em><span>Tambah Data Kamus</span></a></li>
+					</ul>
+				</div>
+			</div>
+		</div><!-- .nk-block-head-content -->
+	</div>
+</div>
+<div class="nk-block nk-block-lg">
+	<div class="card card-preview">
+		<div class="card-inner">
+			<table class="table" id="kosakata_table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Kata</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div><!-- .card-preview -->
+</div>
+<div class="modal fade" id="kosakata_modal">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Tambah Data Kamus</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form id="kosakata_form" method="POST">
+				{% csrf_token %}
+				<input type="hidden" name="id" id="id" value="">
+				<div class="modal-body">
+
+					<div class="form-group">
+						<label for="kata">Kata</label>
+						<input type="text" required class="form-control" id="kata" name="kata" >
+					</div>
+
+
+					<div class="form-group">
+						<button class="btn btn-info" id="show_import_modal">Import From File</button>
+					</div>
+
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="submit" class="btn btn-primary">Simpan Data</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+
+<div class="modal fade" id="import_modal">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Import Data Kosakata</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form id="import_form" method="POST" enctype="multipart/form-data">
+				{% csrf_token %}
+				<div class="modal-body">
+
+
+					<div class="form-group">
+						<label for="file">File</label>
+						<input type="file" required class="form-control" id="file" name="file" >
+					</div>
+
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input" name="delete_all_data" id="delete_all_data">
+						<label class="form-check-label" for="delete_all_data">Hapus seluruh data?</label>
+					</div>
+
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="submit" class="btn btn-primary">Import data</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+{% endblock content %}
+{% block import-js %}
+<script>
+
+$(document).ready(function() {
+
+
+	$(document).on('click', 'a#show_modal_insert', function() {
+		$("#kosakata_modal").modal('show');
+	});
+
+
+	$(document).on('click', 'button.show_modal_edit', function(e) {
+		var id_kosakata = $(this).data('id');
+		$.ajax({
+			url: "{% url 'kosakata/json_single_kosakata' %}",
+			type: 'POST',
+			dataType: 'json',
+			data: {id: id_kosakata},
+		})
+		.done(function(response) {
+
+			$("input#id").val(response.id);
+			$("input#kata").val(response.kata);
+
+			$("#kosakata_modal").modal('show');
+		});
+
+	});
+
+
+	$(document).on('click', 'button.show_modal_delete', function(e) {
+		var id_kosakata = $(this).data('id');
+		$.ajax({
+			type: "POST",
+			url: "{% url 'kosakata/delete_kosakata' %}",
+			dataType: 'json',
+			data: {id : id_kosakata},
+		})
+		.done(function(response) {
+			kamus_datatable.ajax.reload();
+		})
+	});
+
+
+	$(document).on('click', 'button#show_import_modal', function(e) {
+		$("#kosakata_modal").modal('hide');
+		$("#import_modal").modal('show');
+	})
+
+	$(document).on('submit', 'form#kosakata_form', function(e) {
+		e.preventDefault();
+
+		var data = $(this).serialize();
+		var id_kosakata = $("input#id").val();
+		var url = generate_url(id_kosakata)
+		$.ajax({
+			type: "POST",
+			url: url,
+			dataType: 'json',
+			data: data,
+		})
+		.done(function(response) {
+			if (response.success == true) {
+
+				clean_kosakata_form();
+				$("#kosakata_modal").modal('hide');
+				kamus_datatable.ajax.reload();
+			}
+		});
+	})
+
+	$(document).on('submit', 'form#import_form', function(e) {
+		e.preventDefault();
+		alert('importing');
+		var data = new FormData(this);
+
+		var url = "{% url 'kosakata/import_kosakata' %}"
+		$.ajax({
+			type: "POST",
+			url: url,
+			dataType: 'json',
+			data: data,
+			cache: false,
+			contentType: false,
+			processData: false
+		})
+		.done(function(response) {
+			if (response.success == true) {
+				$("#import_modal").modal('hide');
+				$("input#file").val('');
+				kamus_datatable.ajax.reload();
+			}
+			alert('done');
+		});
+	})
+
+	kamus_datatable = makeDataTable("#kosakata_table", {
+		"ajax": {
+			"url": "{% url 'kosakata/json_kosakata' %}",
+			"dataSrc": ""
+		},
+		"columns": [
+		{ "data": "id" },
+		{ "data": "kata" },
+		{ "data": null },
+		],
+		"columnDefs": [ {
+			"targets": -1,
+			"data": null,
+			"render" : function(data, type, row) {
+				return render_edit_delete_button(row['id'])
+			}
+		} ]
+
+	});
+});
+
+
+function clean_kosakata_form() {
+	$("input#id").val('');
+	$("input#kata").val('');
+}
+function generate_url(id) {
+	var url = "{% url 'kosakata/insert_kosakata' %}";
+	if (id) {
+		url = "{% url 'kosakata/update_kosakata' %}";
+	}
+	return url
+}
+function render_edit_delete_button(id) {
+	var button_edit = '<button type="button" class="show_modal_edit btn btn-warning" data-id="'+id+'">Edit</button>';
+	var button_delete = '<button type="button" class="show_modal_delete btn btn-danger" data-id="'+id+'">Delete</button>';
+	html = button_edit + " "+ button_delete;
+	return html
+}
+</script>
+{% endblock import-js %}
