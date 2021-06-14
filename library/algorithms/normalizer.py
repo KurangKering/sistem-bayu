@@ -12,7 +12,7 @@ class BayuNormalizer:
 
         levenshtein = LocalLevenshtein()
 
-        self._normalizer = ImplementBayuNormalisasi(dictionary, levenshtein)
+        self._normalizer = ImplementBayuNormalisasi(dictionary.as_list(), levenshtein)
 
     def normalisasi(self, words):
         output = self._normalizer.normalisasi(words)

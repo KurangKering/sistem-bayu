@@ -3,7 +3,7 @@ from Levenshtein import distance
 class LocalLevenshtein:
 
     _dict = None
-    _max_op = 1
+    _max_op = 3
 
     def execute(self, dictionary, sentence):
         self._dict = dictionary
@@ -26,7 +26,13 @@ class LocalLevenshtein:
         if proceed == []:
             return result
 
-        result = {k: v for k, v in proceed if v <= self._max_op}
+        condition = True
+        count = 0
+        while (condition):
+            result = {k: v for k, v in proceed if v == count}
+
+            condition = (result == {}) and (count < self._max_op)
+            count = count + 1
 
         return result
 
@@ -34,7 +40,7 @@ class LocalLevenshtein:
 
         output = []
         # checked_word = [x for x in self._dict.as_list() if x.startswith(word[0])]
-        checked_word = [x for x in self._dict.as_list()]
+        checked_word = [x for x in self._dict]
         for dict_word in checked_word:
             num_of_process = self.singular_levenshtein(word, dict_word)
             if num_of_process is None:
