@@ -47,7 +47,7 @@
 	</div><!-- .card-preview -->
 </div>
 <div class="modal fade" id="kosakata_modal">
-	<div class="modal-dialog modal-lg">
+	<div class="modal-dialog modal-md">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h4 class="modal-title">Tambah Data Kamus</h4>
@@ -55,27 +55,22 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<form id="kosakata_form" method="POST">
-				{% csrf_token %}
-				<input type="hidden" name="id" id="id" value="">
-				<div class="modal-body">
-
+			<div class="modal-body">
+				<form id="kosakata_form" method="POST">
+					{% csrf_token %}
+					<input type="hidden" name="id" id="id" value="">
 					<div class="form-group">
 						<label for="kata">Kata</label>
 						<input type="text" required class="form-control" id="kata" name="kata" >
 					</div>
 
-
-					<div class="form-group">
-						<button class="btn btn-info" id="show_import_modal">Import From File</button>
+					<div class="text-center">
+						<button type="submit" class="btn btn-block btn-primary mb-3">Simpan Data</button>
+						<p>ATAU</p>
 					</div>
-
-				</div>
-				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					<button type="submit" class="btn btn-primary">Simpan Data</button>
-				</div>
-			</form>
+				</form>
+				<button class="btn btn-info btn-block" id="show_import_modal">Import File Excel</button>
+			</div>
 		</div>
 		<!-- /.modal-content -->
 	</div>
@@ -83,7 +78,7 @@
 </div>
 
 <div class="modal fade" id="import_modal">
-	<div class="modal-dialog modal-lg">
+	<div class="modal-dialog modal-md">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h4 class="modal-title">Import Data Kosakata</h4>
@@ -125,6 +120,7 @@ $(document).ready(function() {
 
 
 	$(document).on('click', 'a#show_modal_insert', function() {
+		clean_kosakata_form();
 		$("#kosakata_modal").modal('show');
 	});
 
@@ -143,6 +139,9 @@ $(document).ready(function() {
 			$("input#kata").val(response.kata);
 
 			$("#kosakata_modal").modal('show');
+		})
+		.always(function() {
+
 		});
 
 	});
@@ -159,6 +158,9 @@ $(document).ready(function() {
 		.done(function(response) {
 			kamus_datatable.ajax.reload();
 		})
+		.always(function() {
+
+		});
 	});
 
 
@@ -186,6 +188,9 @@ $(document).ready(function() {
 				$("#kosakata_modal").modal('hide');
 				kamus_datatable.ajax.reload();
 			}
+		})
+		.always(function() {
+
 		});
 	})
 
@@ -211,6 +216,9 @@ $(document).ready(function() {
 				kamus_datatable.ajax.reload();
 			}
 			alert('done');
+		})
+		.always(function() {
+
 		});
 	})
 
@@ -230,7 +238,11 @@ $(document).ready(function() {
 			"render" : function(data, type, row) {
 				return render_edit_delete_button(row['id'])
 			}
-		} ]
+		} ],
+		'preDrawCallback': function(settings) {
+		},
+		'drawCallback': function(settings) {
+		}
 
 	});
 });

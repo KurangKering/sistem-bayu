@@ -3,7 +3,7 @@ from Levenshtein import distance
 class LocalLevenshtein:
 
     _dict = None
-    _max_op = 3
+    _max_op = 5
 
     def execute(self, dictionary, sentence):
         self._dict = dictionary
