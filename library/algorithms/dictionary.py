@@ -5,7 +5,7 @@ class DefaultDictionary(object):
 
     def __init__(self, words=None):
         self.words = []
-        words = get_words()
+        # words = get_words()
         if words:
             self.add_words(words)
             

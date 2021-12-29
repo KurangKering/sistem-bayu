@@ -31,7 +31,11 @@ class ImplementBayuNormalisasi:
 
     def normalisasi(self, words):
         self._set_sentence(words)
-
+        
+        #1. lakukan stemming. jika ada, maka berhenti
+        #2. jika tidak ada, maka stemming lagi, namun setiap perubahan kata dari hasil stemming
+        # di simpan kemudian cek kata di kamus yang levenshtein setiap perubahan yang bernilai 1 terhadap hasil stemming tadi.
+        #3. kata dasar yang punya levenshtein 1 tadi lalu diberi imbuhan lg.
         levenshtein = self._create_levenshtein(self._dictionary_alg, self._sentence)
 
         self._set_C_number(levenshtein)

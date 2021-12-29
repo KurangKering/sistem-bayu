@@ -1,4 +1,4 @@
-from Levenshtein import distance
+from library.algorithms.Levenshtein import distance
 
 class LocalLevenshtein:
 

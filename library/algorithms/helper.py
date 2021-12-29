@@ -19,3 +19,10 @@ def get_words(kamus=1):
 def detect_db_vendor():
     from django.db import connection
     return connection.vendor
+
+def context_response(success, msg=None):
+
+	return {
+		'success': success,
+		'messages': msg
+	}

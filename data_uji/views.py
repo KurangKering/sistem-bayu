@@ -8,6 +8,10 @@ from django.views.decorators.csrf import csrf_exempt
 from tablib import Dataset
 from .resources import DataUjiResource
 from django.db import connection
+import openpyxl
+from itertools import islice
+from library.algorithms.helper import *
+
 # Create your views here.
 
 def index(request):
@@ -87,12 +91,51 @@ def json_single_data_uji(request):
     serial = model_to_dict(data_uji)    
     return JsonResponse(serial, safe=False)
 
+def import_data_uji_dua(request):
+    
+    try:
+        excel_file = request.FILES['file']
+
+        wb = openpyxl.load_workbook(excel_file)
+        worksheet = wb['Sheet1']
+        excel_data = []
+
+        field_names = [
+           'raw_data',
+           ]
+
+        for row in islice(worksheet.iter_rows(), 1, None):
+
+           row_data = dict()
+           for index in range(len(row)):
+             row_data[field_names[index]] = str(row[index].value).strip()
+             data_uji = DataUji(**row_data)
+           excel_data.append(data_uji)
+
+
+
+        if request.POST.get('hapus_seluruh_data') == 'on':
+           DataUji.delete()
+
+        DataUji.objects.bulk_create(excel_data)
+        total_data = len(DataUji.values())
+        context = context_response(True, {'total_data': total_data})
+        
+    except IndexError as e:
+        context = context_response(False, 'Format Excel tidak sesuai')
+    except ValueError as e:
+        context = context_response(False, 'Terdapat data kosong. Periksa kembali file import')
+    except Exception as e:
+        context = context_response(False, 'Harap pilih file import berformat excel')    
+        
+    return JsonResponse(context, safe=False)
+
 def import_data_uji(request):
     data_uji_resource = DataUjiResource()
     dataset = Dataset()
     file = request.FILES['file']
     imported_data_uji = dataset.load(file.read())
-    result = data_uji_resource.import_data(dataset, dry_run=True)
+    result = data_uji_resource.import_data(dataset, dry_run=True, raise_errors=True)
 
     if not result.has_errors():
         if request.POST.get('delete_all_data') == 'on':
